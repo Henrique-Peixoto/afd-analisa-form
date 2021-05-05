@@ -51,6 +51,95 @@ class DFA(object):
         # Também precisamos atualizar as transições
         self.transitions = {k:v for k,v in self.transitions.items() if k[0] in reachable_states}
 
+  def minimize(self):
+    # Removendo os estados inatingíveis
+    self._remove_unreachable_states()
+
+    # Manter a ordem dos elementos na tuplas será importante
+    # para saber quais "quadrados" já foram marcados na tabela
+    def order_tuple(a,b):
+      return (a,b) if a < b else (b,a)
+
+    # Usaremos o algoritmo da tabela visto em aula para marcar
+    # os estados que são distintos
+    table = {}
+
+    # Ordenamos os estados para que possamos fazer tudo em sequência,
+    # do primeiro até o último estado
+    sorted_states = sorted(self.states)
+
+    # Inicializando a tabela marcando todos os quadrados onde 
+    # temos um estado final e um estado não final, que são, trivialmente
+    # distintos
+    for i,item in enumerate(sorted_states):
+      for item_2 in sorted_states[i+1:]:
+        table[(item,item_2)] = (item in self.final_states) != (item_2 in self.final_states)
+
+    flag = True
+
+    # Preenchendo o resto da tabela
+    while flag:
+      flag = False
+
+      # Vamos olhar para as cobinações de estados da seguinte maneira
+      # Pegamos um estado qi, com 0 <= i < n (n = quantidade de estados), com qj, com i < j < n.
+      for i, item in enumerate(sorted_states):
+        for item_2 in sorted_states[i+1:]:
+          
+          # Verificamos se o quadrado já está marcado
+          if table[(item,item_2)]:
+            # Se estiver, então os estados são distintos
+            continue
+
+          # Precisamos checar as transições dos estado item e item_2 
+          # para saber se eles são distinguíveis
+          for w in self.terminals:
+            # 'None' é para o caso em que algum estado não esteja
+            # definido para algum determinado terminal
+            t1 = self.transitions.get((item,w), None)
+            t2 = self.transitions.get((item_2,w), None)
+
+            if t1 is not None and t2 is not None and t1 != t2:
+              # Se para pelo menos um transição os estados forem
+              # distintos, então os marcamos na tabela
+              marked = table[order_tuple(t1,t2)]
+              flag = flag or marked
+              # Se os estads t1 e t2 forem distintos, então os 
+              # estados item e item_2 também serão distintos
+              # então, ao invés de criar uma lista de dependências,
+              # já vamos logo marcando (item,item_2) como sendo distintos
+              table[(item,item_2)] = marked
+
+              if marked:
+                break
+
+    d = DisjointSet(self.states)
+
+    # Após analisar os estados, e descobrir aqueles que são distintos
+    # e aqueles que não são, precisar fundir aquelas que são iguais
+    for k,v in table.items():
+      if not v:
+        d.union(k[0],k[1])
+  
+    # Atualizando os estados após a união dos estados iguais
+    self.states = [str(x) for x in range(1,1+len(d.get()))]
+    new_final_states = []
+    self.state_state = str(d.find_set(self.start_state))
+
+    # Pegando os conjuntos do 'd'
+    for s in d.get():
+      # Pegando os elementos de 's'
+      for item in s:
+        if item in self.final_states:
+          # Construindo uma lista de novos estados finais
+          new_final_states.append(str(d.find_set(item)))
+          break
+
+    # Atualizando as transições
+    self.transitions = {(str(d.find_set(k[0])), k[1]):str(d.find_set(v)) for k,v in self.transitions.items()}
+
+    self.final_states = new_final_states
+
   def _get_data_from_file(self, filename):
     """
     Carrega os dados do arquivo. Esses dados são os estados,
