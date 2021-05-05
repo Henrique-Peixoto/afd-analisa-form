@@ -3,4 +3,4 @@ filename = 'exemplo.txt'
 dfa = DFA(filename)
 print(dfa)
 dfa.minimize()
-# print(dfa)
+print(dfa)
