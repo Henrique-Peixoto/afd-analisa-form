@@ -200,3 +200,13 @@ class DFA(object):
       # Em caso de algum erro, qualquer outro erro
       except Exception as e:
         print("Erro: ", e)
+
+  def __str__(self):
+    """
+    String representation
+    """
+    num_of_state = len(self.states)
+    start_state = self.start_state
+    num_of_final = len(self.final_states)
+
+    return '{} estados. {} estados finais. estado inicial - {}'.format(num_of_state,num_of_final,start_state)
