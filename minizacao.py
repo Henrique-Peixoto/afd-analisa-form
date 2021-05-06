@@ -1,11 +1,12 @@
 # classes
 class AFD(object):
-    def __init__(self,alfabeto,estados,programa,estado_inicial,estados_finais):
+    def __init__(self,nome,alfabeto,estados,programa,estado_inicial,estados_finais):
         self.alfabeto = alfabeto
         self.estados = estados
         self.programa = programa # lista de producoes
         self.estado_inicial = estado_inicial
         self.estados_finais = estados_finais
+        self.nome = nome
 
 class Producao(object):
     def __init__(self,estado_inicial,simbolo,proximo_estado):
@@ -13,6 +14,8 @@ class Producao(object):
         self.simbolo = simbolo
         self.proximo_estado = proximo_estado
 
+# objeto para guardar o automato
+automato = AFD('',[],[],[],'',[])
 # abrindo arquivo descritivo
 with open('exemplo.txt', 'r+') as file:
     # Requisitos do algoritmo:
@@ -75,5 +78,38 @@ with open('exemplo.txt', 'r+') as file:
         programa.append(producao_obj)
 
     # criação do objeto AFD
-    automato = AFD(alfabeto,estados,programa,estado_inicial,estados_finais)
-    print(automato.alfabeto)
+    automato = AFD(nome_AFD,alfabeto,estados,programa,estado_inicial,estados_finais)
+
+# Equivalência de Estados
+# montagem da tabela de distinções
+pares_marcados = []
+# percorre lista de estados finais do autômato
+for i in range(len(automato.estados_finais)):
+    # e a lista de estados geral
+    for j in range(len(automato.estados)):
+        # para cada estado na lista geral que não esteja na lista de
+        # estados finais
+        if (automato.estados[j] not in automato.estados_finais):
+            # forma um par com esse estado e o estado final da iteração mais de fora
+            # e marca este par
+            par = [automato.estados_finais[i],automato.estados[j]]
+            pares_marcados.append(par)
+
+# itera a lista de estados com dois fors para saber quais
+# pares de estados não foram marcados no passo anterior
+nao_marcados = []
+for estado1 in automato.estados:
+    for estado2 in automato.estados:
+        if estado1 != estado2:
+            marcado = False
+            for par in pares_marcados:
+                if (estado1 in par) and (estado2 in par):
+                    marcado = True
+                    break
+            if marcado == False:
+                par = [estado1,estado2]
+                # exclui repetições na lista de não marcados
+                par_trocado = [estado2,estado1]
+                if par_trocado not in nao_marcados:
+                    nao_marcados.append(par)
+
