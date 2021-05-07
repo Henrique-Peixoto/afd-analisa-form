@@ -3,7 +3,7 @@ from disjoint_set import DisjointSet
 
 class DFA(object):
   
-  def __init__(self, filename, states=None, terminals=None, start_state=None, transitions=None, final_state=None):
+  def __init__(self, filename, states=None, terminals=None, start_state=None, transitions=None, final_states=None):
     self._get_data_from_file(filename)
 
   def _remove_unreachable_states(self):
@@ -28,28 +28,28 @@ class DFA(object):
       # Conjunto que guarda os estados atingíveis
       reachable_states = set()
 
-      # Inserindo os estados atingíveis
-      while stack:
-        # Pegando o estado que está no topo da pilha
-        state = stack.pop()
+    # Inserindo os estados atingíveis
+    while stack:
+      # Pegando o estado que está no topo da pilha
+      state = stack.pop()
 
-        # Guardando todos os estados atingíveis a partir do estado em questão
-        if state not in reachable_states:
-          stack += g[state]
+      # Guardando todos os estados atingíveis a partir do estado em questão
+      if state not in reachable_states:
+        stack += g[state]
 
-        # Adicionando o estado atingível em questão ao conjunto
-        # de estado atingíveis, como isso é um set, elementos 
-        # repetidos não são incluidos pela natureza inerente do próprio container
-        reachable_states.add(state)
+      # Adicionando o estado atingível em questão ao conjunto
+      # de estado atingíveis, como isso é um set, elementos 
+      # repetidos não são incluidos pela natureza inerente do próprio container
+      reachable_states.add(state)
 
-        # Atualizando os estados para que tenhamos somente os estados atingíveis
-        self.states = [state for state in self.states if state in reachable_states]
+    # Atualizando os estados para que tenhamos somente os estados atingíveis
+    self.states = [state for state in self.states if state in reachable_states]
 
-        # Também precisamos atualizar os estados finais,
-        self.final_states = [state for state in self.final_states if state in reachable_states]
+    # Também precisamos atualizar os estados finais,
+    self.final_states = [state for state in self.final_states if state in reachable_states]
 
-        # Também precisamos atualizar as transições
-        self.transitions = {k:v for k,v in self.transitions.items() if k[0] in reachable_states}
+    # Também precisamos atualizar as transições
+    self.transitions = {k:v for k,v in self.transitions.items() if k[0] in reachable_states}
 
   def minimize(self):
     # Removendo os estados inatingíveis
@@ -124,7 +124,7 @@ class DFA(object):
     # Atualizando os estados após a união dos estados iguais
     self.states = [str(x) for x in range(1,1+len(d.get()))]
     new_final_states = []
-    self.state_state = str(d.find_set(self.start_state))
+    self.start_state = str(d.find_set(self.start_state))
 
     # Pegando os conjuntos do 'd'
     for s in d.get():
@@ -139,6 +139,13 @@ class DFA(object):
     self.transitions = {(str(d.find_set(k[0])), k[1]):str(d.find_set(v)) for k,v in self.transitions.items()}
 
     self.final_states = new_final_states
+
+    # Exibindo o autômato minimizado
+    print(self.states)
+    print(self.terminals)
+    print(self.start_state)
+    print(self.final_states)
+    print(self.transitions)
 
   def _get_data_from_file(self, filename):
     """
@@ -164,27 +171,31 @@ class DFA(object):
         # Sempre checando para ver se o formato do arquivo está correto
 
         if states:
-          self.states = states.split()
+          self.states = states[:-1].split()
+          print(self.states)
         else:
           raise Exception('Formato de arquivo inválido: estados não puderam ser lidos')
 
         if terminals: 
-          self.terminals = terminals.split()
+          self.terminals = terminals[:-1].split()
+          print(self.terminals)
         else:
           raise Exception('Formato de arquivo inválido: terminais não puderam ser lidos')
 
         if start_state:
-          self.start_state = start_state
+          self.start_state = start_state[:-1]
+          print(self.start_state)
         else:
           raise Exception('Formato de arquivo inválido: estado inicial não pode ser lido')
 
         if final_states:
-          self.final_states = final_states.split()
+          self.final_states = final_states[:-1].split()
+          print(self.final_states)
         else:
           raise Exception('Formato de arquivo inválido: estados finais não puderam ser lidos')
 
         # Pegando as transições
-        lines = lines[:4]
+        lines = lines[4:]
         self.transitions = {}
         for line in lines:
           # Separando a transição em "estado de onde saímos", "símbolo que gera transição"
@@ -196,6 +207,7 @@ class DFA(object):
     
           current_state, terminal, next_state = line.split()
           self.transitions[(current_state, terminal)] = next_state
+          print(current_state, terminal, next_state)
 
       # Em caso de algum erro, qualquer outro erro
       except Exception as e:
@@ -203,7 +215,7 @@ class DFA(object):
 
   def __str__(self):
     """
-    String representation
+    Representação especial de string
     """
     num_of_state = len(self.states)
     start_state = self.start_state

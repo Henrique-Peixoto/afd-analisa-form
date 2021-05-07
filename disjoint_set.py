@@ -26,7 +26,7 @@ class DisjointSet(object):
 
 		s = self._get_index(item)
 
-		return s+1 if s is not None else None 
+		return s+1 if s is not None else None
 
 	def union(self,item1,item2):
 		i = self._get_index(item1)
