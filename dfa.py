@@ -3,7 +3,7 @@ from disjoint_set import DisjointSet
 
 class DFA(object):
   
-  def __init__(self, filename, states=None, terminals=None, start_state=None, transitions=None, final_states=None):
+  def __init__(self, filename, states=None, terminals=None, start_state=None, transitions=None, final_states=None, name_afd=None):
     self._get_data_from_file(filename)
 
   def _remove_unreachable_states(self):
@@ -139,13 +139,7 @@ class DFA(object):
     self.transitions = {(str(d.find_set(k[0])), k[1]):str(d.find_set(v)) for k,v in self.transitions.items()}
 
     self.final_states = new_final_states
-
-    # Exibindo o autômato minimizado
-    print(self.states)
-    print(self.terminals)
-    print(self.start_state)
-    print(self.final_states)
-    print(self.transitions)
+    print("AFD minimizado")
 
   def _get_data_from_file(self, filename):
     """
@@ -163,51 +157,103 @@ class DFA(object):
         # Quarta linha: os estados finais
         # Linhas seguintes: as transições
 
-        # Lendo o conteúdo do arquivo
-        lines = f.readlines()
-        states, terminals, start_state, final_states = lines[:4]
+        # Lendo a primeira linha (descrição) do arquivo
+        linhas = f.readlines()
 
-        # Fazendo o parsing dos símbolos lidos 
-        # Sempre checando para ver se o formato do arquivo está correto
+        # Temos que fazer o parsing do arquivo para pegar seus
+        # valores corretamente
+        linha = linhas[0].split('=')
+        self.name_afd = linha[0]
+        
+        # Separa texto da descrição em listas e elementos
+        descricao = linha[1].replace('(','')
+        descricao = linha[1].replace(')','')
+        descricao = descricao.split('}',1)
 
-        if states:
-          self.states = states[:-1].split()
-          print(self.states)
-        else:
-          raise Exception('Formato de arquivo inválido: estados não puderam ser lidos')
+        # Lista de estados
+        self.states = (descricao[0].strip('(').strip('{')).split(',')
 
-        if terminals: 
-          self.terminals = terminals[:-1].split()
-          print(self.terminals)
-        else:
-          raise Exception('Formato de arquivo inválido: terminais não puderam ser lidos')
+        descricao = descricao[1]
+        descricao = descricao.strip(',')
+        descricao = descricao.split('}',1)
 
-        if start_state:
-          self.start_state = start_state[:-1]
-          print(self.start_state)
-        else:
-          raise Exception('Formato de arquivo inválido: estado inicial não pode ser lido')
+        # Alfabeto
+        self.terminals = (descricao[0].strip('{')).split(',')
 
-        if final_states:
-          self.final_states = final_states[:-1].split()
-          print(self.final_states)
-        else:
-          raise Exception('Formato de arquivo inválido: estados finais não puderam ser lidos')
+        descricao = descricao[1]
+        descricao = descricao.strip(',')
+        descricao = descricao.split(',',2)
 
+        # Estado inicial
+        self.start_state = descricao[1]
+
+        descricao = descricao[2].strip('{').strip('}')
+
+        # Estados finais
+        self.final_states = descricao.replace('\n','').replace('}','').split(',')
+
+        # Pula a linha que diz 'Prog'
+        # next(linhas)
+        
+        # Lê as linhas restantes, que são as produções da função programa
+
+        
+
+        # # Fazendo o parsing dos símbolos lidos 
+        # # Sempre checando para ver se o formato do arquivo está correto
+
+        # if states:
+        #   self.states = states[:-1].split()
+        #   print(self.states)
+        # else:
+        #   raise Exception('Formato de arquivo inválido: estados não puderam ser lidos')
+
+        # if terminals: 
+        #   self.terminals = terminals[:-1].split()
+        #   print(self.terminals)
+        # else:
+        #   raise Exception('Formato de arquivo inválido: terminais não puderam ser lidos')
+
+        # if start_state:
+        #   self.start_state = start_state[:-1]
+        #   print(self.start_state)
+        # else:
+        #   raise Exception('Formato de arquivo inválido: estado inicial não pode ser lido')
+
+        # if final_states:
+        #   self.final_states = final_states[:-1].split()
+        #   print(self.final_states)
+        # else:
+        #   raise Exception('Formato de arquivo inválido: estados finais não puderam ser lidos')
+
+        producoes = linhas[2:]
         # Pegando as transições
-        lines = lines[4:]
+        # lines = lines[4:]
         self.transitions = {}
-        for line in lines:
+        for producao in producoes:
           # Separando a transição em "estado de onde saímos", "símbolo que gera transição"
           # e "estado resultante"
           # As transições são representadas por um dicionário, onde as chaves são pares ordenados onde o primeiro componente
           # é um estado e o segundo componente um terminal,
           # e o valor associado a esta chave é o estado resultante
           # da transição 
-    
-          current_state, terminal, next_state = line.split()
+          producao = producao.replace('\n','')
+          producao = producao.replace('(','')
+          producao = producao.replace(')','')
+          producao = producao.split(',')
+
+          # Estado de onde parte a produção
+          current_state = producao[0]
+
+          producao = producao[1]
+          producao = producao.strip(',')
+          producao = producao.split('=')
+
+          # Terminal e próximo estado
+          terminal = producao[0]
+          next_state = producao[1]
+
           self.transitions[(current_state, terminal)] = next_state
-          print(current_state, terminal, next_state)
 
       # Em caso de algum erro, qualquer outro erro
       except Exception as e:
@@ -215,10 +261,12 @@ class DFA(object):
 
   def __str__(self):
     """
-    Representação especial de string
+    Representação do autômato
     """
-    num_of_state = len(self.states)
-    start_state = self.start_state
-    num_of_final = len(self.final_states)
 
-    return '{} estados. {} estados finais. estado inicial - {}'.format(num_of_state,num_of_final,start_state)
+    # Exibindo o autômato
+    print(self.name_afd+'='+'({'+','.join(self.states)+'},{'+','.join(self.terminals)+'},Prog,'+self.start_state+',{'+','.join(self.final_states)+'})') 
+    for k,v in self.transitions.items():
+      print(f"({k[0]},{k[1]})={v}")
+
+    return ''
