@@ -150,12 +150,6 @@ class DFA(object):
     # Abrindo o arquivo e o apelidando de 'f', para facilitar seu manuseio
     with open(filename, 'r') as f:
       try:
-        # A ordem de leitura do arquivo é a seguinte:
-        # Primeira linha: os estados
-        # Segunda linha: os terminais
-        # Terceira linha: o estado inicial
-        # Quarta linha: os estados finais
-        # Linhas seguintes: as transições
 
         # Lendo a primeira linha (descrição) do arquivo
         linhas = f.readlines()
@@ -192,51 +186,11 @@ class DFA(object):
         # Estados finais
         self.final_states = descricao.replace('\n','').replace('}','').split(',')
 
-        # Pula a linha que diz 'Prog'
-        # next(linhas)
-        
-        # Lê as linhas restantes, que são as produções da função programa
-
-        
-
-        # # Fazendo o parsing dos símbolos lidos 
-        # # Sempre checando para ver se o formato do arquivo está correto
-
-        # if states:
-        #   self.states = states[:-1].split()
-        #   print(self.states)
-        # else:
-        #   raise Exception('Formato de arquivo inválido: estados não puderam ser lidos')
-
-        # if terminals: 
-        #   self.terminals = terminals[:-1].split()
-        #   print(self.terminals)
-        # else:
-        #   raise Exception('Formato de arquivo inválido: terminais não puderam ser lidos')
-
-        # if start_state:
-        #   self.start_state = start_state[:-1]
-        #   print(self.start_state)
-        # else:
-        #   raise Exception('Formato de arquivo inválido: estado inicial não pode ser lido')
-
-        # if final_states:
-        #   self.final_states = final_states[:-1].split()
-        #   print(self.final_states)
-        # else:
-        #   raise Exception('Formato de arquivo inválido: estados finais não puderam ser lidos')
-
         producoes = linhas[2:]
-        # Pegando as transições
-        # lines = lines[4:]
+
         self.transitions = {}
         for producao in producoes:
-          # Separando a transição em "estado de onde saímos", "símbolo que gera transição"
-          # e "estado resultante"
-          # As transições são representadas por um dicionário, onde as chaves são pares ordenados onde o primeiro componente
-          # é um estado e o segundo componente um terminal,
-          # e o valor associado a esta chave é o estado resultante
-          # da transição 
+          # Fazendo o parsing das transições
           producao = producao.replace('\n','')
           producao = producao.replace('(','')
           producao = producao.replace(')','')
@@ -253,6 +207,12 @@ class DFA(object):
           terminal = producao[0]
           next_state = producao[1]
 
+          # Separando a transição em "estado de onde saímos", "símbolo que gera transição"
+          # e "estado resultante"
+          # As transições são representadas por um dicionário, onde as chaves são pares ordenados onde o primeiro componente
+          # é um estado e o segundo componente um terminal,
+          # e o valor associado a esta chave é o estado resultante
+          # da transição 
           self.transitions[(current_state, terminal)] = next_state
 
       # Em caso de algum erro, qualquer outro erro

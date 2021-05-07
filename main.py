@@ -1,5 +1,5 @@
 from dfa import DFA
-filename = 'exemplo3.txt'
+filename = 'exemplo2.txt'
 dfa = DFA(filename)
 print(dfa)
 dfa.minimize()
