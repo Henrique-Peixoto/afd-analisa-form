@@ -230,3 +230,47 @@ class DFA(object):
       print(f"({k[0]},{k[1]})={v}")
 
     return ''
+
+  def verify_word(self, word):
+    """
+    Verifica se a palavra é aceita pelo AFD. Em caso positivo é retornado o caminho percorrido até a aceitação,
+    em caso negativo, é retornado o motivo da não acietação (indefinição ou estado nao final).
+    """
+
+    # Começa pelo estado inicial
+    current_state = self.start_state
+
+    # Inicia a lista de saída
+    output = []
+
+    # Iteramos cada letra da palavra verificando o caminho 
+    for letter in word:
+      # Montamos a lista com o caminho atual e letra lida
+      output.append(current_state)
+      output.append(letter)
+
+      # Atualizamos o estado
+      current_state = self.transitions.get((current_state, letter), None)
+
+      # Verificamos se existe transição para a letra atual
+      if current_state == None:
+       print("Palavra rejeitada: caminho não definido")
+       return
+
+    # Verifica se o estado em que terminou é final
+    if current_state not in self.final_states:
+      print("Palavra rejeitada: estado não final")
+      return
+
+    # Pra facilitar, pegamos o tamanho da lista final
+    size = len(output)
+
+    # Imprime na tela o caminho percorrido
+    print("Palavra aceita, caminho percorrido:")
+    for i in range(0, size, 2):
+      if (i + 2) < size:
+        print(f"({output[i]},{output[i+1]}) = {output[i+2]}")
+        continue
+
+      print(f"({output[i]},{output[i+1]}) = {current_state}")
+      
