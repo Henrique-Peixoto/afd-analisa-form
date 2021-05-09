@@ -238,3 +238,111 @@ class DFA(object):
       print(f"({k[0]},{k[1]})={v}")
 
     return ''
+
+  def verify_word(self, word):
+    """
+    Verifica se a palavra é aceita pelo AFD. Em caso positivo é retornado o caminho percorrido até a aceitação,
+    em caso negativo, é retornado o motivo da não acietação (indefinição ou estado nao final).
+    """
+    # Começa pelo estado inicial
+    current_state = self.start_state
+
+    # Inicia a lista de saída
+    output = []
+
+    # Iteramos cada letra da palavra verificando o caminho 
+    for letter in word:
+      # Montamos a lista com o caminho atual e letra lida
+      output.append(current_state)
+      output.append(letter)
+
+      # Atualizamos o estado
+      current_state = self.transitions.get((current_state, letter), None)
+
+      # Verificamos se existe transição para a letra atual
+      if current_state == None:
+       print("Palavra rejeitada: caminho não definido")
+       print()
+       return
+
+    # Verifica se o estado em que terminou é final
+    if current_state not in self.final_states:
+      print("Palavra rejeitada: estado não final")
+      print()
+      return
+
+    # Pra facilitar, pegamos o tamanho da lista final
+    size = len(output)
+
+    # Imprime na tela o caminho percorrido
+    print("Palavra aceita, caminho percorrido:")
+    for i in range(0, size, 2):
+      if (i + 2) < size:
+        print(f"({output[i]},{output[i+1]}) = {output[i+2]}")
+        continue
+
+      print(f"({output[i]},{output[i+1]}) = {current_state}")
+
+    print()
+
+  def _verify_word_bool(self, word):
+    # Começa pelo estado inicial
+    current_state = self.start_state
+
+    # Iteramos cada letra da palavra verificando o caminho 
+    for letter in word:
+      # Atualizamos o estado
+      current_state = self.transitions.get((current_state, letter), None)
+
+      # Verificamos se existe transição para a letra atual
+      if current_state == None:
+        # Palavra rejeitada: caminho não definido
+        return False
+
+    # Verifica se o estado em que terminou é final
+    if current_state not in self.final_states:
+      # Palavra rejeitada: estado não final
+      return False
+
+    return True
+
+  def verify_list(self, filename):
+    """
+    Verifica um aqruivo contendo uma lista de duplas de palavras e retorna quais duplas
+    são aceitas (ambos elementos das duplas precisam ser aceitos).
+    """
+    # Inicia a lista de saída
+    output = []
+
+    # Abrimos o arquivo com a lista de duplas
+    with open(filename, 'r') as f:
+      try:
+        # Para cada linha do arquivo
+        for line in f:
+          # Flag para indicar se ambas as palavras foram aceitas
+          accepted = True
+
+          # Apaga o '\n'
+          line = line.rstrip()
+
+          # Seprara as duplas
+          words = line.split(",")
+
+          # Itera as duplas da lista
+          for word in words:
+            if not self._verify_word_bool(word):
+              accepted = False
+              break
+          
+          # Se ambas forem aceitas, adiciona à lista de saída
+          if accepted:
+            output.append(line)
+
+      # Em caso de algum erro, qualquer outro erro
+      except Exception as e:
+        print("Erro: ", e)
+    
+    # Imprime a lista de saída
+    print("Lista de duplas acietas:")
+    for accepted_pair in output:
+      print(accepted_pair)
