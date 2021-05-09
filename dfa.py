@@ -116,19 +116,27 @@ class DFA(object):
     d = DisjointSet(self.states)
 
     # Após analisar os estados, e descobrir aqueles que são distintos
-    # e aqueles que não são, precisar fundir aquelas que são iguais
+    # e aqueles que não são, unimos aqueles que são iguais num único estado
     for k,v in table.items():
       if not v:
         d.union(k[0],k[1])
   
     # Atualizando os estados após a união dos estados iguais
+    # d.get() retorna o conjunto com os arrays 
+    # de estados, se o array tem um único elemento
+    # então não há estados equivalentes ao estado
+    # em questão, se houver dois ou mais estados
+    # no mesmo array, então todos aqueles estados são
+    # equivalentes
     self.states = [str(x) for x in range(1,1+len(d.get()))]
     new_final_states = []
+    # Buscando no disjoint set o array onde 
+    # está o estado inicial
     self.start_state = str(d.find_set(self.start_state))
 
-    # Pegando os conjuntos do 'd'
+    # Pegando os arrays de estados do 'd'
     for s in d.get():
-      # Pegando os elementos de 's'
+      # Pegando os estados de 's'
       for item in s:
         if item in self.final_states:
           # Construindo uma lista de novos estados finais
